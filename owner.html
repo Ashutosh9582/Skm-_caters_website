@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Owner panel | SKM Caters</title><link rel="stylesheet" href="css/bootstrap.min.css"><link rel="stylesheet" href="css/skm.css"></head>
+<body style="padding:30px 0"><div class="container" style="max-width:760px">
+<!-- CHANGE 24: owner panel. Login -> reviews approve/delete, photo upload, enquiries list. Sirf login wale owner ko write ka haq (Firestore rules) -->
+<h2>SKM Caters - Owner panel</h2>
+<div id="loginBox"><input class="form-control" id="oMail" placeholder="Owner email"><br><input class="form-control" id="oPass" type="password" placeholder="Password"><br><button class="btn btn-warning" onclick="login()">Login</button> <span id="oMsg"></span></div>
+<div id="panel" style="display:none">
+  <button class="btn btn-default pull-right" onclick="auth.signOut()">Logout</button>
+  <h3>Photos</h3><input type="file" id="pFile" accept="image/*" multiple> <input id="pCap" placeholder="Caption (optional)"> <button class="btn btn-warning" onclick="uploadPhotos()">Upload</button>
+  <div id="pList" class="row" style="margin-top:10px"></div>
+  <h3>Reviews</h3><div id="rList"></div>
+  <h3>Enquiries</h3><div id="eList"></div>
+</div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/config.js"></script><script src="js/backend.js"></script>
+<script>
+function el(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
+function login() { auth.signInWithEmailAndPassword(oMail.value, oPass.value).catch(function (e) { oMsg.textContent = "Login failed"; }); }
+if (!auth) document.getElementById("loginBox").textContent = "Firebase keys js/config.js me daalo (SETUP_GUIDE.md dekho).";
+else auth.onAuthStateChanged(function (u) { loginBox.style.display = u ? "none" : "block"; panel.style.display = u ? "block" : "none"; if (u) loadAll(); });
+
+function loadAll() { loadReviews(); loadPhotos(); loadEnquiries(); }
+function loadReviews() {
+  db.collection("reviews").orderBy("created", "desc").get().then(function (s) {
+    rList.innerHTML = "";
+    s.forEach(function (d) { var r = d.data(), row = el("div", "", "rev-card");
+      row.append(el("b", r.name + " (" + r.event + ", " + r.rating + "/5) " + (r.approved ? "- LIVE" : "- waiting")), el("p", r.text));
+      if (!r.approved) { var a = el("button", "Approve", "btn btn-success"); a.onclick = function () { db.collection("reviews").doc(d.id).update({ approved: true }).then(loadReviews); }; row.append(a, " "); }
+      var x = el("button", "Delete", "btn btn-danger"); x.onclick = function () { if (confirm("Delete?")) db.collection("reviews").doc(d.id).delete().then(loadReviews); }; row.append(x); rList.append(row); });
+  });
+}
+// Photo: browser me chhota karo (max 900px, JPEG) taaki Firestore (free plan) me fit ho
+function shrink(file) { return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { var i = new Image(); i.onload = function () {
+  var s = Math.min(1, 900 / Math.max(i.width, i.height)), c = document.createElement("canvas"); c.width = i.width * s; c.height = i.height * s;
+  c.getContext("2d").drawImage(i, 0, 0, c.width, c.height); ok(c.toDataURL("image/jpeg", 0.75)); }; i.src = r.result; }; r.readAsDataURL(file); }); }
+function uploadPhotos() {
+  var files = Array.from(pFile.files); if (!files.length) return alert("Photo chuno");
+  Promise.all(files.map(function (f) { return shrink(f).then(function (data) { return db.collection("photos").add({ data: data, caption: pCap.value, created: Date.now() }); }); }))
+    .then(function () { pFile.value = ""; pCap.value = ""; loadPhotos(); }).catch(function () { alert("Upload failed (photo bahut badi ho sakti hai)"); });
+}
+function loadPhotos() {
+  db.collection("photos").orderBy("created", "desc").get().then(function (s) { pList.innerHTML = "";
+    s.forEach(function (d) { var c = el("div", "", "col-xs-4"), i = new Image(); i.src = d.data().data; i.style.width = "100%";
+      var x = el("button", "Delete", "btn btn-danger btn-xs"); x.onclick = function () { db.collection("photos").doc(d.id).delete().then(loadPhotos); }; c.append(i, x); pList.append(c); }); });
+}
+function loadEnquiries() {
+  db.collection("enquiries").orderBy("created", "desc").limit(50).get().then(function (s) { eList.innerHTML = "";
+    s.forEach(function (d) { var e = d.data(), row = el("div", "", "rev-card");
+      row.append(el("b", e.name + " - " + e.phone), el("p", e.event + ", " + e.guests + " guests, " + e.date), el("p", "Dishes: " + (e.dishes || []).join(", "))); eList.append(row); }); });
+}
+</script></body></html>

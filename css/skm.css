@@ -1,0 +1,30 @@
+/* skm.css - CHANGE 2: only the NEW pieces the template does not have (menu chips, review cards, event cards).
+   Colour #e75b1e is the template's own orange, so the new parts match the theme. */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 10px;margin:20px 0}               /* scrollable row of section buttons */
+.tab,.chip{cursor:pointer;background:#fff;border:1px solid #e75b1e;color:#e75b1e;border-radius:999px;padding:7px 14px;font-weight:600}
+.tab{flex:none}.chip{margin:0 8px 8px 0;border-radius:8px;border-color:#ccc;color:#333;font-weight:400} /* dish buttons */
+.tab.on{background:#e75b1e;color:#fff}.chip.on{background:#e75b1e;border-color:#e75b1e;color:#fff}     /* .on = selected */
+#search{max-width:420px;margin:0 auto 20px;display:block;width:100%;padding:10px;border:1px solid #ccc}
+.picked-box{background:#fff;border:2px solid #e75b1e;padding:20px;margin-top:25px;text-align:center}
+.ev-card,.rev-card{background:#fff;padding:25px;margin-bottom:25px;min-height:190px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.ev-card i{font-size:28px;color:#e75b1e}
+.stars{color:#e75b1e;letter-spacing:2px}
+.rev-form{background:#fff;padding:25px;max-width:640px;margin:30px auto 0}
+.rev-form input,.rev-form select,.rev-form textarea{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc}
+.reservations-box select,.reservations-box textarea{width:100%;padding:12px;border:1px solid #ccc;background:#fff}
+.btn-row button{margin:5px;cursor:pointer}
+.quote-btn{display:inline-block;background:#e75b1e;color:#fff !important;padding:10px 26px;text-decoration:none}  /* "Get a quote" button: orange fill, white text */
+.btn-row button{background:#e75b1e;color:#fff;border:0;padding:12px 24px;text-transform:uppercase}
+#homeReviews p{color:#fff;text-align:center;width:100%}  /* "No reviews yet" text readable on dark background */
+/* suggest.js ka panel */
+.sug-box{margin:0 0 25px}.sug-row{display:flex;flex-wrap:wrap;gap:12px}
+.sug-card{flex:1 1 220px;border:1px solid #ddd;padding:12px;background:#fff}.sug-card p{font-size:12px;color:#666;margin:6px 0 10px}
+.sug-line{margin:8px 0}
+/* BUG FIX (review form click nahi hota tha): template ka ::before parda (50% kaala overlay) poore section par absolute bichha hai.
+   Hamara .container positioned nahi tha, isliye parda uske UPAR aa gaya aur form ko click/type nahi hone deta tha (aur form dhundhla dikhta tha).
+   position:relative + z-index:2 se container parde ke upar aa jata hai. */
+.blog-main > .container, .team-main > .container, .reservations-main > .container{position:relative;z-index:2}
+
+/* BUG FIX (logo): header logo 2000x2000 photo ki tarah poori size me dikh raha tha aur banner par chhaya hua tha. Ab chhota, fixed height. */
+.logo-header img{height:100px;width:auto;max-width:none;display:block;padding:4px 0}
+@media (max-width:767px){.logo-header img{height:64px}}
