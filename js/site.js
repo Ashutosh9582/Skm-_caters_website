@@ -15,10 +15,6 @@
   $("#waBtn").href = "https://wa.me/" + window.SKM.phone + "?text=" + encodeURIComponent("Hello SKM Caters, I would like to know more about your catering services.");
 
   function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
-  function getJSON(action) {
-    if (!hasApi) return Promise.reject(new Error("API not configured"));
-    return fetch(API + "?action=" + action).then(function (r) { return r.json(); });
-  }
 
   // Gallery (Supabase)
   var grid = $("#galleryGrid"), filters = $("#filters"), photos = [], active = "All";
@@ -71,14 +67,19 @@
   lb.addEventListener("click", function () { lb.hidden = true; lbImg.src = ""; });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") lb.hidden = true; });
 
-  // Testimonials
+  // Testimonials: published reviews from the V6 app (Supabase), refreshed with the gallery.
   var tg = $("#testimonialGrid");
-  getJSON("testimonials").then(function (d) {
-    if (!d.items || !d.items.length) throw new Error("empty");
-    tg.innerHTML = d.items.map(function (t) {
-      return '<article class="card"><p>&ldquo;' + esc(t.text) + '&rdquo;</p><cite>' + esc(t.name) + (t.event ? ", " + esc(t.event) : "") + "</cite></article>";
-    }).join("");
-  }).catch(function () { $("#testimonials").hidden = true; });
+  function loadTestimonials() {
+    return sbGet("web_testimonials?select=*&published=eq.true&order=sort_order.asc").then(function (rows) {
+      if (!rows.length) throw new Error("empty");
+      tg.innerHTML = rows.map(function (t) {
+        return '<article class="card"><p>&ldquo;' + esc(t.review) + '&rdquo;</p><cite>' + esc(t.name) + (t.event_name ? ", " + esc(t.event_name) : "") + "</cite></article>";
+      }).join("");
+      $("#testimonials").hidden = false;
+    });
+  }
+  if (sbOk) { loadTestimonials().catch(function () { $("#testimonials").hidden = true; }); setInterval(function () { if (!document.hidden) loadTestimonials().catch(function () {}); }, 60000); }
+  else $("#testimonials").hidden = true;
 
   // Enquiry form
   var form = $("#enquiryForm"), msg = $("#formMsg");
