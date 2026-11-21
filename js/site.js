@@ -111,11 +111,17 @@
       headers: sbHeaders({ "Content-Type": "application/json", Prefer: "return=minimal,resolution=ignore-duplicates" }),
       body: JSON.stringify(row)
     }).then(function (r) {
-      if (!r.ok) { r.text().then(function (x) { console.error("Enquiry save failed", r.status, x); }); throw new Error("save"); }
+      if (!r.ok) {
+        return r.text().then(function (x) {
+          var c = ""; try { c = JSON.parse(x).code || ""; } catch (e) {}
+          console.error("Enquiry save failed", r.status, x);
+          throw new Error(r.status + (c ? " " + c : ""));
+        });
+      }
       // Optional email alert to the owner (Apps Script). Failure here never blocks the customer.
       if (hasApi) fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(d) }).catch(function () {});
       form.reset(); say("Thank you. Your enquiry has been received and we will contact you shortly.", true);
-    }).catch(function () { say("Sorry, we could not send your enquiry. Please try again or contact us on WhatsApp."); })
+    }).catch(function (e) { say("Sorry, we could not send your enquiry. Please try again or contact us on WhatsApp. (Ref: " + (e && e.message && e.message.length < 30 ? e.message : "network") + ")"); })
       .then(function () { btn.disabled = false; });
   });
 })();

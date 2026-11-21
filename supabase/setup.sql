@@ -117,3 +117,15 @@ drop policy if exists "partners update reviews" on public.web_testimonials;
 create policy "partners update reviews" on public.web_testimonials for update to authenticated using (public.is_partner()) with check (public.is_partner());
 drop policy if exists "partners delete reviews" on public.web_testimonials;
 create policy "partners delete reviews" on public.web_testimonials for delete to authenticated using (public.is_partner());
+
+-- ===================== API PERMISSIONS =====================
+grant usage on schema public to anon, authenticated;
+grant execute on function public.is_partner() to anon, authenticated;
+
+grant select on public.web_gallery to anon;
+grant insert on public.web_enquiries to anon;
+grant select on public.web_testimonials to anon;
+
+grant select, insert, update, delete on public.web_gallery to authenticated;
+grant select, insert, update, delete on public.web_enquiries to authenticated;
+grant select, insert, update, delete on public.web_testimonials to authenticated;
