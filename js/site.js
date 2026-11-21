@@ -33,8 +33,15 @@
   });
   // Supabase REST (public anon key; row-level security returns published rows only)
   var SBC = window.SKM.supabase, sbOk = SBC.url.indexOf("http") === 0;
+  // New-style publishable keys (sb_publishable_...) are not JWTs: send them in "apikey" only.
+  function sbHeaders(extra) {
+    var h = { apikey: SBC.key };
+    if (SBC.key.indexOf("sb_") !== 0) h.Authorization = "Bearer " + SBC.key;
+    for (var k in extra) h[k] = extra[k];
+    return h;
+  }
   function sbGet(path) {
-    return fetch(SBC.url + "/rest/v1/" + path, { headers: { apikey: SBC.key, Authorization: "Bearer " + SBC.key } })
+    return fetch(SBC.url + "/rest/v1/" + path, { headers: sbHeaders() })
       .then(function (r) { if (!r.ok) throw new Error("sb"); return r.json(); });
   }
 
@@ -91,7 +98,7 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) return say("Please enter a valid email address.");
     if (!/^(\+?91)?[6-9]\d{9}$/.test(d.phone.replace(/[\s-]/g, ""))) return say("Please enter a valid Indian mobile number.");
     if (!sbOk) return say("The enquiry service is not configured yet. Please call or WhatsApp us.");
-    if (d.website) return say("Thank you. Your enquiry has been received and we will contact you shortly.", true); // honeypot
+    if (d.hp_check) return say("Thank you. Your enquiry has been received and we will contact you shortly.", true); // honeypot
     var btn = $("button", form); btn.disabled = true; say("Sending your enquiry\u2026", true);
     var row = {
       name: d.name, email: d.email, phone: "+91" + d.phone.replace(/[\s-]/g, "").slice(-10),
@@ -101,10 +108,10 @@
     // Saved straight into the V6 database. The server re-validates and ignores same-day duplicates.
     fetch(SBC.url + "/rest/v1/web_enquiries?on_conflict=dedupe_key", {
       method: "POST",
-      headers: { apikey: SBC.key, Authorization: "Bearer " + SBC.key, "Content-Type": "application/json", Prefer: "return=minimal,resolution=ignore-duplicates" },
+      headers: sbHeaders({ "Content-Type": "application/json", Prefer: "return=minimal,resolution=ignore-duplicates" }),
       body: JSON.stringify(row)
     }).then(function (r) {
-      if (!r.ok) throw new Error("save");
+      if (!r.ok) { r.text().then(function (x) { console.error("Enquiry save failed", r.status, x); }); throw new Error("save"); }
       // Optional email alert to the owner (Apps Script). Failure here never blocks the customer.
       if (hasApi) fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(d) }).catch(function () {});
       form.reset(); say("Thank you. Your enquiry has been received and we will contact you shortly.", true);
