@@ -5,7 +5,7 @@
    It creates the gallery table + image bucket, the enquiries table, testimonials, the security rules and live notifications.
    If you already ran an older `setup.sql`, run only `supabase/testimonials.sql` for the new testimonials feature.
 2. **V6 app**: in your GitHub repo replace `index.html` with the one from `skm-v6-updated.zip`. Open the app, tap the cloud button, log in as a partner.
-3. **Website**: put the files inside `website/` at the root of a new GitHub repo, Settings > Pages > main / root. The domain skmcatters.com is already set in `CNAME`, `index.html`, `robots.txt`, `sitemap.xml`. In Hostinger DNS: 4 A records for `@` (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153) and CNAME `www` to `ashutosh9582.github.io`; then tick Enforce HTTPS in Pages. (Netlify also works.)
+3. **Website** (Food Funday theme look, no Bootstrap, no public menu): put the files inside `website/` at the root of a new GitHub repo, Settings > Pages > main / root. The domain skmcatters.com is already set in `CNAME`, `index.html`, `robots.txt`, `sitemap.xml`. In Hostinger DNS: 4 A records for `@` (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153) and CNAME `www` to `ashutosh9582.github.io`; then tick Enforce HTTPS in Pages. (Netlify also works.)
 4. **Owner email alert (optional, 3 minutes)**: Supabase alone does not send emails.
    a. Open script.google.com, sign in with ashutoshbeel@gmail.com, New project, paste `apps-script/Code.gs`.
    b. Deploy > New deployment > Web app. Execute as **Me**, Who has access **Anyone**. Authorize when asked.
@@ -32,3 +32,10 @@
 - Everything above passed in a simulated test only. My environment cannot reach your Supabase, so step 1 to 6 on your live project is the real test. Send me any error text and I will fix it.
 - Albums are a text field per photo; the website filters by category.
 - V6 enquiry screen is English/Hinglish like the rest of V6.
+
+## About the design and photos
+- The look is the original Food Funday theme (orange accent, dark photo sections, script headings), rebuilt with plain CSS Grid/Flexbox. Bootstrap, jQuery, Owl, Font Awesome and the other old libraries are removed.
+- The public menu section is removed. Your V6 menu/quotation data is untouched.
+- **Default photos:** the gallery shows the 10 theme photos until you publish your own photos in V6. As soon as at least one V6 photo is published, only your photos show. If you hide or delete all of them, the defaults return. The hero, About, Specials, Events, Packages and Form backgrounds also use the theme's own photos. Replace those files in `images/` (same file names) to change them.
+- The theme credit ("Food Funday by ThemeWagon") stays in the footer, as the theme licence requires.
+- Testimonials: the section and the "Reviews" menu link stay hidden until you publish one in V6 (More > Testimonials).
